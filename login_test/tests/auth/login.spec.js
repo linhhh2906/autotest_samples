@@ -1,29 +1,43 @@
-// tests/auth/login.spec.js
-const { test, expect } = require('@playwright/test');
-const LoginPage = require('../../pages/LoginPage');
-const DashboardPage = require('../../pages/DashboardPage');
+import { test, expect } from '@playwright/test';
+import { LoginPage as loginpage } from '../pages/login.page';
 
-test.describe('Login Feature', () => {
+test.describe('Login Test Suite', () => {
 
-  test('Login successfully', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    const dashboardPage = new DashboardPage(page);
+  test('Login success', async ({ page }) => {
+    const loginPage = new loginpage(page);
 
-    await loginPage.navigate('/login');
-    await loginPage.login('admin', 'password123');
+    await loginPage.goto();
+    await loginPage.login('standard_user', 'secret_sauce');
 
-    await expect(page).toHaveURL(/dashboard/);
-    await expect(await dashboardPage.getProfileName()).toContain('Admin');
+    await expect(page).toHaveURL(/inventory/);
+    await expect(page.locator('.inventory_container')).toBeVisible();
   });
 
-  test('Login failed with wrong credentials', async ({ page }) => {
-    const loginPage = new LoginPage(page);
+  test('Login fail - wrong password', async ({ page }) => {
+    const loginPage = new loginpage(page);
 
-    await loginPage.navigate('/login');
-    await loginPage.login('wrong', 'wrong');
+    await loginPage.goto();
+    await loginPage.login('standard_user', 'wrong_password');
 
-    const error = await loginPage.getErrorMessage();
-    expect(error).toContain('Invalid credentials');
+    await expect(loginPage.errorMsg).toBeVisible();
+  });
+
+  test('Login fail - empty username', async ({ page }) => {
+    const loginPage = new loginpage(page);
+
+    await loginPage.goto();
+    await loginPage.login('', 'secret_sauce');
+
+    await expect(loginPage.errorMsg).toContainText('Username is required');
+  });
+
+  test('Login fail - locked user', async ({ page }) => {
+    const loginPage = new loginpage(page);
+
+    await loginPage.goto();
+    await loginPage.login('locked_out_user', 'secret_sauce');
+
+    await expect(loginPage.errorMsg).toContainText('locked out');
   });
 
 });
