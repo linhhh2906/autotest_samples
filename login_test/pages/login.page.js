@@ -1,25 +1,24 @@
-// pages/LoginPage.js
-const BasePage = require('./BasePage');
-
-class LoginPage extends BasePage {
+export class LoginPage {
   constructor(page) {
-    super(page);
+    this.page = page;
 
-    this.usernameInput = '#username';
-    this.passwordInput = '#password';
-    this.loginButton = '#loginBtn';
-    this.errorMessage = '.error';
+    this.username = page.locator('#user-name');
+    this.password = page.locator('#password');
+    this.loginBtn = page.locator('#login-button');
+    this.errorMsg = page.locator('[data-test="error"]');
+  }
+
+  async goto() {
+    await this.page.goto('https://www.saucedemo.com/');
   }
 
   async login(username, password) {
-    await this.fill(this.usernameInput, username);
-    await this.fill(this.passwordInput, password);
-    await this.click(this.loginButton);
+    await this.username.fill(username);
+    await this.password.fill(password);
+    await this.loginBtn.click();
   }
 
   async getErrorMessage() {
-    return await this.getText(this.errorMessage);
+    return await this.errorMsg.textContent();
   }
 }
-
-module.exports = LoginPage;

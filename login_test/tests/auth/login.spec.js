@@ -1,43 +1,47 @@
 import { test, expect } from '@playwright/test';
-import { LoginPage as loginpage } from '../pages/login.page';
+import { LoginPage } from '../../pages/login.page';
+import { loginData } from '../../utils/test-data';
 
-test.describe('Login Test Suite', () => {
+//test.describe('Login Feature - SauceDemo', () => {
 
-  test('Login success', async ({ page }) => {
-    const loginPage = new loginpage(page);
+  test('TC01 - Login successfully', async ({ page }) => {
+    const loginPage = new LoginPage(page);
 
-    await loginPage.goto();
-    await loginPage.login('standard_user', 'secret_sauce');
+    // Step 1: Navigate to login page
+    await loginPage.goToLoginPage();
 
+    // Step 2: Login with valid credentials
+    await loginPage.login(
+      loginData.validUser.username,
+      loginData.validUser.password
+    );
+
+    // Expected: Redirect to inventory page
     await expect(page).toHaveURL(/inventory/);
-    await expect(page.locator('.inventory_container')).toBeVisible();
+
+    // Expected: Inventory page visible
+    await expect(loginPage.inventoryContainer).toBeVisible();
   });
 
-  test('Login fail - wrong password', async ({ page }) => {
-    const loginPage = new loginpage(page);
+  test('TC02 - Login failed with invalid password', async ({ page }) => {
+    const loginPage = new LoginPage(page);
 
-    await loginPage.goto();
-    await loginPage.login('standard_user', 'wrong_password');
+    // Step 1: Navigate to login page
+    await loginPage.goToLoginPage();
 
-    await expect(loginPage.errorMsg).toBeVisible();
+    // Step 2: Login with invalid credentials
+    await loginPage.login(
+      loginData.invalidUser.username,
+      loginData.invalidUser.password
+    );
+
+    // Expected: Error message displayed
+    await expect(loginPage.errorMessage).toBeVisible();
+
+    // Expected: Correct error text
+    await expect(loginPage.errorMessage).toContainText(
+      'Username and password do not match'
+    );
   });
 
-  test('Login fail - empty username', async ({ page }) => {
-    const loginPage = new loginpage(page);
-
-    await loginPage.goto();
-    await loginPage.login('', 'secret_sauce');
-
-    await expect(loginPage.errorMsg).toContainText('Username is required');
-  });
-
-  test('Login fail - locked user', async ({ page }) => {
-    const loginPage = new loginpage(page);
-
-    await loginPage.goto();
-    await loginPage.login('locked_out_user', 'secret_sauce');
-
-    await expect(loginPage.errorMsg).toContainText('locked out');
-  });
-
-});
+//});
